@@ -8,5 +8,5 @@ spec:
     spec:
       containers:
       # Change the value of image field below to your controller image URL
-      - image: harbor-aws-us-west-2.dev.databricks.com/main/cluster-api-azure-controller-amd64:97c7a8aa6c8a66eea58e2176b7f57c2983670fc7-20220809-225328-DIRTY-f20c09febf1855d7c83c3a73ce44e8599b28867a
+      - image: harbor-aws-us-west-2.dev.databricks.com/main/cluster-api-azure-controller-amd64:5604774fc1eeb12bcd83b34f810b3d2c1431bb0d-20220811-174447-DIRTY-b63f12d6204c0cf86606b02c713750ad78918bea
         name: manager

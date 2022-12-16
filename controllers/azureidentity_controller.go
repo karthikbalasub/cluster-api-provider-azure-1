@@ -109,6 +109,7 @@ func (r *AzureIdentityReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		tele.KVP("name", req.Name),
 		tele.KVP("kind", "AzureCluster"),
 	)
+	log.Info("Starting Azure Identity Reconciler", "namespace", req.Namespace, "name", req.Name)
 	defer done()
 
 	// identityOwner is the resource that created the identity. This could be either an AzureCluster or AzureManagedControlPlane (if AKS is enabled).
@@ -145,6 +146,7 @@ func (r *AzureIdentityReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// get all the bindings
 	var bindings aadpodv1.AzureIdentityBindingList
+	log.Info("Listing AzureIdentityBindings", "namespace", system.GetManagerNamespace())
 	if err := r.List(ctx, &bindings, client.InNamespace(system.GetManagerNamespace())); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -152,6 +154,7 @@ func (r *AzureIdentityReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	var bindingsToDelete []aadpodv1.AzureIdentityBinding
 	for _, b := range bindings.Items {
 		log = log.WithValues("azureidentitybinding", b.Name)
+		log.Info("Checking if AzureIdentityBinding should be deleted", "azureidentitybinding", b.Name)
 
 		binding := b
 		clusterName := binding.ObjectMeta.Labels[clusterv1.ClusterLabelName]
@@ -182,6 +185,7 @@ func (r *AzureIdentityReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 					return ctrl.Result{}, errors.Wrap(err, "failed to get AzureManagedControlPlane")
 				}
 			}
+			
 		}
 	}
 

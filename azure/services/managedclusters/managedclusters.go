@@ -20,6 +20,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sigs.k8s.io/cluster-api-provider-azure/azure/scope"
+	cmd "sigs.k8s.io/cluster-api-provider-azure/util/kubelogin"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2021-05-01/containerservice"
@@ -53,6 +55,7 @@ type ManagedClusterScope interface {
 	MakeEmptyKubeConfigSecret() corev1.Secret
 	GetKubeConfigData() []byte
 	SetKubeConfigData([]byte)
+	GetManagedControlPlaneCredentialsProvider() *scope.ManagedControlPlaneCredentialsProvider
 }
 
 // Service provides operations on azure resources.
@@ -388,7 +391,14 @@ func (s *Service) Reconcile(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get credentials for managed cluster")
 	}
-	s.Scope.SetKubeConfigData(kubeConfigData)
+	klog.V(2).Infof("Successfully fetched kubeconfig data for managed cluster %s", s.Scope.ClusterName())
+	klog.V(2).Infof("Converting kubeconfig to non interactive format for managed cluster %s", s.Scope.ClusterName())
+	convertedKubeConfigData, err := cmd.ConvertKubeConfig(ctx, s.Scope.ClusterName(), kubeConfigData, s.Scope.GetManagedControlPlaneCredentialsProvider())
+	if err != nil {
+		return errors.Wrap(err, "failed to convert kubeconfig to non-interactive format")
+	}
+	klog.V(2).Infof("Successfully converted kubeconfig to non interactive format for managed cluster %s", s.Scope.ClusterName())
+	s.Scope.SetKubeConfigData(convertedKubeConfigData)
 
 	return nil
 }
